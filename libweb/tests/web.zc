@@ -1,0 +1,21 @@
+//> link: -lweb -lbase
+raw {
+	#include <libbase.h>
+	#include "Packages/libweb/headers/libweb.h"
+
+	void page_handle(route_t r, cwr_t wr)
+	{
+		send_response(wr, (_response){ OK, 0, 0, "Hello World" }, 0);
+	}
+}
+
+fn main()
+{
+	set_heap_sz(_HEAP_PAGE_ * 5);
+	init_mem();
+	let n: cws_t = init_web_server(NULL, 80);
+	web_append_route(n, create_route("IDX", "/", (handler_t)page_handle, 0));
+	start_web_server(n, 0);
+	println "Hello World"
+	uninit_mem();
+}
