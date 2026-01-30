@@ -21,7 +21,7 @@ lib:
 # Bloatware
 NOSSL:
 	lbg --output a.out \
-	web.c \
+	tests/web.c \
 	src/webserver.c \
 	src/parser.c \
 	src/router.c \
