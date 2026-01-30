@@ -17,6 +17,7 @@ lib:
     src/utils.c
 	ar rcs libweb.a *.o
 	cp libweb.a /usr/lib
+	rm *.o
 
 # Bloatware
 NOSSL:
