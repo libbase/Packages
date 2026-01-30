@@ -7,6 +7,8 @@ download_lb:
 	git clone https://github.com/CoreSTD/lbg-compiler.git
 	cd base; sudo make; cd ..
 	sudo make lib
+	rm -rf base
+	rm -rf lbg-compiler
 
 compile_w_ssl:
 	gcc -ffreestanding \
