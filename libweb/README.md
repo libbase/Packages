@@ -5,13 +5,13 @@
 
 # Information
 
-- A HTTP web server maintain by libbase
+- A HTTP web server maintain by CoreSTD
 - SSL to be implemented on a newer update
 
 # Install
 
 ```bash
-git clone https://github.com/libbase/Packages.git
+git clone https://github.com/CoreSTD/Packages.git
 cd Packages/libweb
 sudo make dlfull
 # sudo make lib  // RECOMPILE THE LIB

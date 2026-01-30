@@ -3,8 +3,8 @@
 all: compile_w_ssl
 
 download_lb:
-	git clone https://github.com/libbase/base.git
-	git clone https://github.com/libbase/lbg-compiler.git
+	git clone https://github.com/CoreSTD/base.git
+	git clone https://github.com/CoreSTD/lbg-compiler.git
 	cd base; sudo make; cd ..
 	sudo make lib
 
