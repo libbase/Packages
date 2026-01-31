@@ -346,9 +346,12 @@ fn send_response(cwr_t wr, _response r, bool heap_content)
 
     str_append(ctx, "HTTP/1.1 ");
     str_append_int(ctx, r.code);
-    str_append(ctx, " ");
-    str_append(ctx, status_code_to_string(r.code));
-    str_append(ctx, "\r\n");
+    str_append_array(ctx, (ptr []){
+		" ",
+		status_code_to_string(r.code),
+		"\r\n",
+		NULL
+	});
 
     int body_len = 1;
 	if(heap_content)
@@ -361,43 +364,35 @@ fn send_response(cwr_t wr, _response r, bool heap_content)
         if(body_len > 0)
         {
             string n = int_to_str(body_len);
-            str_append(ctx, "Content-Length: ");
-            str_append(ctx, n);
+            str_append_array(ctx, (ptr []){"Content-Length: ", n, "\r\n", NULL});
             pfree(n, 1);
         }
 
         for(int i = 0; i < r.headers->len; i++)
         {
-            str_append(ctx, r.headers->fields[i]->key);
-            str_append(ctx, ":");
-            str_append(ctx, r.headers->fields[i]->value);
-            str_append(ctx, "\r\n");
+            str_append_array(ctx, (ptr []){
+				r.headers->fields[i]->key,
+				":",
+				r.headers->fields[i]->value,
+				"\r\n",
+				NULL	
+			});
         }
     } else {
         if(body_len > 0)
         {
             string n = int_to_str(body_len);
-            str_append(ctx, "Content-Length: ");
-            str_append(ctx, n);
-            str_append(ctx, "\r\n");
+            str_append_array(ctx, (ptr []){"Content-Length: ", n, "\r\n", NULL});
             pfree(n, 1);
         }
 
         for(int i = 0; DEFAULT_HEADERS[i] != NULL; i++)
-        {
-            str_append(ctx, DEFAULT_HEADERS[i]->key);
-            str_append(ctx, ": ");
-            str_append(ctx, DEFAULT_HEADERS[i]->value);
-            str_append(ctx, "\r\n");
-        }
+            str_append_array(ctx, (ptr []){ DEFAULT_HEADERS[i]->key, ": ", DEFAULT_HEADERS[i]->value, "\r\n", NULL });
     }
 
     str_append(ctx, "\r\n");
     if(r.content)
-	{
-		str_append(ctx, r.content);
-		str_append(ctx, "\r\n\r\n");
-	}
+		str_append_array(ctx, (ptr []){r.content, "\r\n\r\n", NULL});
 
     sock_write(wr->socket, ctx);
     if(__LB_DEBUG__)

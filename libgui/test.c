@@ -144,6 +144,8 @@ fn validate_file(binary_t *b) {
 
     print_args((string []){"File Type: ", type == 0 ? "Executable" : type ? "Shared Lib" : "None", "\n", NULL});
 
+
+
 	b->ARCH = (b->buffer + 5)[0];
     if(is_file_x86(b->ARCH) > -1)
         print("Is a "), print(!b->ARCH ? "32-bit" : "64-bit"), println(" file");
@@ -295,18 +297,6 @@ void window_destruct(wi_t wi)
     glfwTerminate();
 }
 
-void draw_box(float cx, float cy, float w, float h, float rgb[3])
-{
-    glColor3f(rgb[0], rgb[1], rgb[2]);
-
-    glBegin(GL_QUADS);
-        glVertex2f(cx - w/2, cy - h/2);
-        glVertex2f(cx + w/2, cy - h/2);
-        glVertex2f(cx + w/2, cy + h/2);
-        glVertex2f(cx - w/2, cy + h/2);
-    glEnd();
-}
-
 void draw_rounded_box(float cx, float cy, float w, float h, float r, int segments, float rgb[3])
 {
     glColor3f(rgb[0], rgb[1], rgb[2]);
@@ -390,53 +380,48 @@ fn display_debug(wi_t wi, binary_t *b, int s)
 	char byte[3]; int bytes = 0;
     char BUFF[1024] = {0}, BUFFER[1024] = {0};
 
-    int height = 120;
 	for(int i = 0; i < b->CODE_COUNT; i++)
 	{
 		if(is_reg_valid(b->OPCODE[i]) || (i + 1 < b->CODE_COUNT && b->OPCODE[i] == 0x0F && b->OPCODE[i + 1] == 0x05) || b->OPCODE[i] == 0xC3) {
-			// print("\r\033[32C | Bytes: "), bytes > 9 ? _printi(bytes) : printi(bytes), println(NULL);
-            str_append(BUFFER, "Bytes: ");
             string num = int_to_str(bytes);
-            str_append(BUFFER, num);
-            str_append(BUFFER, " | ");
-            str_append(BUFFER, BUFF);
-            str_append(BUFFER, "\n");
+            str_append_array(BUFFER, (ptr []){
+                "Bytes: ", num, " | ", BUFF, "\n", NULL
+            });
             memzero(BUFF, 1024);
             pfree(num, 1);
-            
-            height += 25;
+
 			bytes = 0;
 		}
-
-		// u32 v;
-		// mem_cpy(&v, &b->OPCODE[i], sizeof(u32));
-		// if(v == (u32)0x10000001)
-			// println("HERE");
-
+        
 		bytes++;
 		byte_to_hex(b->OPCODE[i], byte);
-		// print(byte), print(i == b->CODE_COUNT - 1 ? " ": ", ");
-
-        // GUI VIEW
-        str_append(BUFF, byte);
-        i == b->CODE_COUNT - 1 ? str_append(BUFF, " ") : str_append(BUFF, " ");
+        str_append_array(BUFF, (ptr []){
+            byte, i == b->CODE_COUNT - 1 ? " " : ", ", NULL
+        });
 		if(b->OPCODE[i] == 0xC3)
 			break;
 	}
+
+	draw_text(wi, 16.5f, 105, BUFFER, 1.9f, 0.0f, 0.0f, 0.0f);
+	memzero(BUFFER, 1024);
 
 	if(!s) return;
 	// println("\n\x1b[32m# ~ [ !DATA SEGMENT! ] ~ #\x1b[39m");
     for(int i = 0 ; i < 2; i++) {
     	int sz = __get_size__(b->STRINGS[i]) - 1;
-    	// print("Byte: "), _printi(sz), print(" -> "), print(b->STRINGS[i]), print("\t: ");
+    	str_append(BUFFER, "Bytes: ");
+    	str_append_int(BUFFER, sz);
+    	str_append_array(BUFFER, (ptr []){" -> ", b->STRINGS[i], "\t: ", NULL});
+        
     	for(int c = 0; b->STRINGS[i][c] != '\0'; c++)
     	{
 			byte_to_hex(b->STRINGS[i][c], byte);
-			// print(byte), print(b->STRINGS[i][c] == 0x0A ? " " : ", ");
+			str_append_array(BUFFER, (ptr []){byte, b->STRINGS[i][c] == 0x0A ? " " : ", ", NULL});
     	}
-    	// println(NULL);
+		str_append(BUFFER, "\n");
     }
-    draw_text(wi, 35, 120, BUFFER, 2.0f, 0.0f, 0.0f, 0.0f);
+
+    draw_text(wi, 300, 105, BUFFER, 2.0f, 0.0f, 0.0f, 0.0f);
 }
 
 binary_t *beep;
@@ -444,41 +429,62 @@ void draw_window(wi_t wi)
 {
     glColor3f(0.2f, 0.6f, 0.9f);
     draw_rounded_box(
-        -0.3,
-        -0.1,
-        1.2f,
+        -0.493f,
+        -0.15f,
+        0.95f,
         1.5f,
         0.1f,
         18,
         (float [3]){1.0f, 1.0f, 1.0f}
     );
-    
+
     draw_rounded_box(
-        -0.3,
-        0.5,
-        0.55f,
+        -0.48f,
+        0.48f,
+        0.5f,
         0.2f,
         0.1f,
         18,
         (float [3]){1.0f, 0.0f, 0.0f}
     );
-    draw_text(wi, 95, 85, "Disassembled View", 2.0f, 1.0f, 1.0f, 1.0f);
-    
+    draw_text(wi, 85, 75, "Disassembled View", 2.0f, 1.0f, 1.0f, 1.0f);
+
+	draw_rounded_box(
+		0.493f,
+		-0.15f,
+		0.95f,
+		1.5f,
+		0.1f,
+		18,
+		(float [3]){1.0f, 1.0f, 1.0f}
+	);
+
     draw_rounded_box(
-        0,
-        0.85,
+    	0.50f,
+    	0.48f,
+    	0.5f,
+    	0.2f,
+    	0.1f,
+    	18,
+    	(float [3]){1.0f, 0.0f, 0.0f}
+    );
+    draw_text(wi, 355, 75, "Strings", 2.0f, 1.0f, 1.0f, 1.0f);
+
+    draw_rounded_box(
+        0.0f,
+        0.80f,
         1.5f,
-        0.2f,
+        0.3f,
         0.1f,
         6,
         (float [3]){1.0f, 0.0f, 0.0f}
     );
 
-    draw_text(wi, 155, 18, "CoreSTD Debugger", 2.0f, 1.0f, 1.0f, 1.0f);
-    draw_text(wi, 80, 33, "Home", 2.0f, 1.0f, 1.0f, 1.0f);
-    draw_text(wi, 120, 33, "Disassemble Opcode", 2.0f, 0.5f, 0.5f, 0.5f);
-    draw_text(wi, 230, 33, "Strings", 2.0f, 0.5f, 0.5f, 0.5f);
-    draw_text(wi, 280, 33, "Debug", 2.0f, 0.5f, 0.5f, 0.5f);
+    draw_text(wi, 210, 18, "CoreSTD Debugger", 2.0f, 1.0f, 1.0f, 1.0f);
+    draw_text(wi, 130, 40, "Home", 2.0f, 1.0f, 1.0f, 1.0f);
+    draw_text(wi, 165, 40, "Disassemble Opcode", 2.0f, 0.5f, 0.5f, 0.5f);
+    draw_text(wi, 280, 40, "Strings", 2.0f, 0.5f, 0.5f, 0.5f);
+    draw_text(wi, 340, 40, "Debug", 2.0f, 0.5f, 0.5f, 0.5f);
 	display_debug(wi, beep, 1);
 }
 
@@ -494,14 +500,12 @@ int main(void)
 
     validate_file(b);
     parse_file(b);
-	// debug(b, 0);
     parse_buffers(b);
     search_n_replace_pointers(b);
     uintptr_t page_start = (uintptr_t)b->OPCODE & ~(_HEAP_PAGE_ - 1);
 
-    wi_t wi = init_window_instance(800, 700, "CoreSTD Compiler - Debugger");
+    wi_t wi = init_window_instance(1000, 600, "CoreSTD Compiler - Debugger");
     wi->draw = draw_window;
-    // wi->thread = start_thread((handler_t)display_window, wi, 0);
     display_window(wi);
     window_destruct(wi);
     return 0;
