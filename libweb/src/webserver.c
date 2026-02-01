@@ -64,7 +64,7 @@ int find_route(cws_t ws, string route)
 		return -1;
 
 	for(int i = 0; i < ws->route_count; i++)
-		if(mem_cmp(ws->routes[i]->path, route, __get_size__(route)))
+		if(mem_cmp(ws->routes[i]->path, route, str_len(route)))
 			return i;
 
 	return -1;

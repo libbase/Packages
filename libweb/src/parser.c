@@ -110,13 +110,14 @@ handler_t request_handler(cwr_t wr)
 
 	// Trim GET parameters from URI
 	wr->uri = str_dup(info[1]);
-	int r = find_route(_WEB_, info[1]);
+	strip_uri(wr);
+	int r = find_route(_WEB_, wr->path);
 	if(r == -1) {
 		print_args((string []){"[ WEB_SERVER ]: Attempt @ ", info[1], "\n", 0});
 		return NULL;
 	}
 	
-		print_args((string []){"[ WEB_SERVER ]: New request @ ", info[1], "\n", 0});
+	print_args((string []){"[ WEB_SERVER ]: New request @ ", info[1], "\n", 0});
 
 	if(__LB_DEBUG__)
 		print_args((string []){"Triggering: ", _WEB_->routes[r]->name, "\n", 0});
@@ -272,6 +273,20 @@ fn parse_post(cwr_t wr)
 	pfree_array((void *)args);
 }
 
+public fn strip_uri(cwr_t wr)
+{
+	if(!wr)
+		return;
+
+	int pos = find_char(wr->uri, '?');
+	if(pos == -1) {
+		wr->path = str_dup(wr->uri);
+		return;
+	}
+
+	wr->path = get_sub_str(wr->uri, 0, pos - 1);
+}
+
 fn parse_get_parameters(cwr_t wr)
 {
 	if(!wr)
@@ -282,7 +297,7 @@ fn parse_get_parameters(cwr_t wr)
 		return;
 
 	wr->get = init_map();
-	string parameters = wr->body + pos;
+	string parameters = wr->uri + (pos + 1);
 	if(find_char(parameters, '&')) {
 		int argc = 0;
 		sArr params = split_string(parameters, '&', &argc);
